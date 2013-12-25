@@ -1,0 +1,42 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true" CodeFile="Challanissued.aspx.cs" Inherits="Challanissued" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder2" Runat="Server">
+    <link href="StyleSheet.css" rel="stylesheet" type="text/css" />
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder3" Runat="Server">
+<div style="height:230px;width:868px;">
+    <div class="client_heading">Challan Issued</div>
+    <div class="client_message">
+        <asp:Label runat="server" ID="lblmasg"></asp:Label>
+    </div>
+    <div class="info_cntnt">
+        <div class="cntnt_value" style="height:50px">Vehicle no.: </div>
+        <div class="cntnt_value">Challan Type:</div>
+        <div class="cntnt_value">Place of challan:</div>
+        <div class="cntnt_value">Remarks:</div>
+    </div>
+    <div class="info_txt">
+        <div class="cntnt_value" style="height:50px">
+            <asp:TextBox ID="txtvehicle" runat="server" Width="160px"></asp:TextBox>
+            <asp:Button ID="btnread" runat="server" Text="Read" Height="22px" />
+        </div>
+        
+        <div class="cntnt_value">
+            <asp:DropDownList ID="DropDownList1" runat="server" Width="160px">
+            </asp:DropDownList>
+        </div>
+        <div class="cntnt_value">
+            <asp:DropDownList ID="DropDownList2" runat="server" Width="160px">
+            </asp:DropDownList>
+        </div>
+        <div class="cntnt_value">
+            <asp:TextBox ID="txtremarks" runat="server" TextMode="MultiLine" Width="160px" 
+                Height="40px"></asp:TextBox>
+        </div>
+        
+    </div>
+    
+</div>
+</asp:Content>
+
+ 

@@ -1,0 +1,47 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Drawing;
+using System.Data.SqlClient;
+using System.Data;
+
+public partial class Default4 : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        try
+        {
+            SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+            con.Open();
+            SqlCommand cmd = new SqlCommand("ddAreas", con);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+            SqlDataReader dr;
+            dr = cmd.ExecuteReader();
+
+            DropDownList1.DataSource = dr;
+            DropDownList1.DataBind();
+
+            //ddlFillList.DataValueField = dr["AreaID"].ToString();
+            //ddlFillList.DataTextField = dr["Name"].ToString();
+
+
+
+            con.Close();
+        }
+        catch (Exception ex)
+        {
+            Response.Write(ex);
+        }
+
+    }
+    protected void DropDownList1_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        
+
+    }
+}

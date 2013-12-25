@@ -1,0 +1,41 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/MasterPage.master" AutoEventWireup="true" CodeFile="Vehicle Info.aspx.cs" Inherits="Vehicle_Info" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder2" Runat="Server">
+    <link href="StyleSheet.css" rel="stylesheet" type="text/css" />
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder3" Runat="Server">
+<div class="client_heading">Vehicle Information</div>
+    <div class="client_message" >
+        <asp:label runat="server" ID="lblMsg"></asp:label>
+     </div>
+    <div class="date">
+        Date: <asp:Label ID="lblDate" runat="server" Text=""></asp:Label>   
+    </div>
+    <div class="info_cntnt">
+            <div class="cntnt_value" style="height:50px">Vehicle No.:</div>
+            <div class="cntnt_value">Owner Name:</div>
+            <div class="cntnt_value">Contact No.:</div>
+            <div class="cntnt_value">Engine No.:</div>
+            <div class="cntnt_value">Model:</div>
+
+    </div>
+    <div class="info_txt">
+            <div class="cntnt_value" style="height:50px">
+                <asp:TextBox ID="txtVehicle" runat="server" width="100"></asp:TextBox>
+                <asp:Button runat="server" ID="btnView" Text="View Detail" Height="22px" />
+            </div>
+            <div class="cntnt_value">
+                <asp:TextBox ID="txtName" runat="server" width="150"></asp:TextBox>
+            </div>
+            <div class="cntnt_value">
+                <asp:TextBox ID="txtContact" runat="server" width="150"></asp:TextBox>
+            </div>
+            <div class="cntnt_value">
+                <asp:TextBox ID="txtEngine" runat="server" width="150"></asp:TextBox>
+            </div>
+            <div class="cntnt_value">
+                <asp:TextBox ID="txtModel" runat="server" width="150"></asp:TextBox>
+            </div>
+    </div>
+</asp:Content>
+

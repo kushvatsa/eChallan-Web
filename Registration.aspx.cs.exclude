@@ -1,0 +1,453 @@
+﻿using System;
+using System.Collections;
+using System.Configuration;
+using System.Data;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Drawing;
+using System.Data.SqlClient;
+
+public partial class Registration : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        
+        txtDate.Text = System.DateTime.Today.Date.ToShortDateString();
+        if (!IsPostBack)
+        {
+            InitForNew();
+            Panel_grid.Visible = false;
+        }
+    }
+
+    protected void btnNew_Click(object sender, EventArgs e)
+    {
+        InitForNew();
+        lblMsg.Text = "";
+    }
+
+    protected void btnSave_Click(object sender, EventArgs e)
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+            string sp;
+            if (btnSave.Text == "Add") sp = "AddVehicle";
+            else sp = "UpdateVehicle";
+
+
+            SqlCommand cmd = new SqlCommand(sp, con);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@Name", System.Data.SqlDbType.VarChar, 50).Value = txtName.Text;
+            cmd.Parameters.Add("@Address", System.Data.SqlDbType.VarChar, 250).Value = txtAddress.Text;
+            cmd.Parameters.Add("@Mobile", System.Data.SqlDbType.VarChar, 50).Value = txtMobile.Text;
+            cmd.Parameters.Add("@Landline", System.Data.SqlDbType.VarChar, 20).Value = txtLandline.Text;
+            cmd.Parameters.Add("@LicenseNo", System.Data.SqlDbType.VarChar, 25).Value = txtLicence.Text;
+            cmd.Parameters.Add("@Email", System.Data.SqlDbType.VarChar, 25).Value = txtmail.Text;
+            cmd.Parameters.Add("@City", System.Data.SqlDbType.Int).Value = ddlCity.SelectedValue;
+            cmd.Parameters.Add("@Manufacturer", System.Data.SqlDbType.Int).Value = ddlmanufctr.SelectedValue;
+            cmd.Parameters.Add("@Color", System.Data.SqlDbType.Int).Value = ddlColor.SelectedValue;
+            cmd.Parameters.Add("@VehicleType", System.Data.SqlDbType.Int).Value = ddlType.SelectedValue;
+            cmd.Parameters.Add("@Gender", System.Data.SqlDbType.Char, 1).Value = rdlGender.SelectedValue;
+            cmd.Parameters.Add("@Dealer", System.Data.SqlDbType.Int).Value = ddlDealer.SelectedValue;
+            cmd.Parameters.Add("@EngineNo", System.Data.SqlDbType.Int, 50).Value = txtEngine.Text;
+            cmd.Parameters.Add("@ChessieNo", System.Data.SqlDbType.Int, 50).Value = txtChessie.Text;
+            cmd.Parameters.Add("@Series", System.Data.SqlDbType.Char, 10).Value = txtSeries.Text;
+            cmd.Parameters.Add("@Date", System.Data.SqlDbType.SmallDateTime, 50).Value = txtDate.Text;
+            cmd.Parameters.Add("@Model", System.Data.SqlDbType.Int).Value = ddlModel.SelectedValue;
+            cmd.Parameters.Add("@VehicleNo", System.Data.SqlDbType.VarChar, 10).Value = txtVehicle.Text;
+            cmd.Parameters.Add("@Remarks", System.Data.SqlDbType.VarChar, 100).Value = txtRemarks.Text;
+
+            if (btnSave.Text == "Update") cmd.Parameters.Add("@RegdID", System.Data.SqlDbType.Int).Value = txtID.Text;
+
+            SqlParameter prm;
+            prm = cmd.Parameters.Add("@ErrorMsg", System.Data.SqlDbType.VarChar, 250);
+            prm.Direction = System.Data.ParameterDirection.InputOutput;
+
+            cmd.ExecuteNonQuery();
+
+            string err;
+            err = (string)cmd.Parameters["@ErrorMsg"].Value;
+            if (err.Length == 0)
+            {
+                lblMsg.Text = (btnSave.Text == "Add") ? "Added Successfully!" : "Updated Successfully!";
+                lblMsg.ForeColor = Color.Green;
+                InitForNew();
+            }
+            else
+            {
+                lblMsg.Text = err;
+                lblMsg.ForeColor = Color.Red;
+            }
+        }
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }
+
+        finally
+        {
+            if (con.State == System.Data.ConnectionState.Open) con.Close();
+        }
+
+    }
+
+    protected void btnList_Click(object sender, EventArgs e)
+    {
+        Panel_grid.Visible = true;
+        GV_List.Visible = false;
+        txtSearchGrid.Text = "";
+    }
+
+    protected void GV_List_SelectedIndexChanged(object sender, EventArgs e)
+    {
+
+        hfName.Value = GV_List.SelectedValue.ToString();
+        ReadVehicle();
+        btnSave.Text = "Update";
+        btnCalcel.Enabled = true;
+        lblHead.Text = "Update Vehicle";
+        Panel_grid.Visible = false;
+    }
+
+    protected void btnSearch_Click(object sender, EventArgs e)
+    {
+        GV_List.Visible = true;
+        FillListVehicle();
+        txtSearchGrid.Text = "";
+    }
+
+
+    void InitForNew()
+    {
+        lblHead.Text = "Vehicle Registration";
+        btnSave.Text = "Add";
+
+        txtID.Text = "";
+        txtName.Text = "";
+        txtRemarks.Text = "";
+        txtAddress.Text = "";
+        txtChessie.Text = "";
+        txtEngine.Text = "";
+        txtLandline.Text = "";
+        txtLicence.Text = "";
+        txtmail.Text = "";
+        txtMobile.Text = "";
+        txtSeries.Text = "";
+        txtVehicle.Text = "";
+
+        btnCalcel.Enabled = false;
+
+        FillListManufctr();
+        FillListDealer();
+        FillListColor();
+        FillListCity();
+        FillListModel();
+        FillListVehicleType();
+
+        txtName.Focus();
+    }
+
+    void ReadVehicle()
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());          
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("ReadVehicle", con);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("@RegdID", System.Data.SqlDbType.Int).Value = hfName.Value;
+
+            SqlDataReader dr;
+            dr = cmd.ExecuteReader();
+            dr.Read();
+
+            txtID.Text = dr["RegdID"].ToString();
+            txtName.Text = dr["Name"].ToString();
+            txtAddress.Text = dr["Address"].ToString();
+            txtMobile.Text = dr["Mobile"].ToString();
+            txtLandline.Text = dr["Landline"].ToString();
+            txtLicence.Text = dr["LicenseNo"].ToString();
+            rdlGender.Text = dr["Gender"].ToString();
+            txtVehicle.Text = dr["VehicleNo"].ToString();
+            txtEngine.Text = dr["EngineNo"].ToString();
+            txtChessie.Text = dr["ChessieNo"].ToString();
+            txtRemarks.Text = dr["Remarks"].ToString();
+            ddlColor.SelectedValue = dr["ColorID"].ToString();
+            txtmail.Text = dr["Email"].ToString();
+            txtSeries.Text = dr["Series"].ToString();
+            ddlDealer.SelectedValue = dr["DealerID"].ToString();
+            ddlCity.SelectedValue = dr["CityID"].ToString();
+            ddlmanufctr.SelectedValue = dr["ManufacturerID"].ToString();
+            ddlType.SelectedValue = dr["VehicleTypeID"].ToString();
+            ddlModel.SelectedValue = dr["ModelID"].ToString();
+            txtDate.Text = dr["Date"].ToString();
+            rdlGender.SelectedValue = dr["Gender"].ToString();            
+        }
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }    
+    }
+
+    void FillListVehicle()
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("showregdvehicles", con);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+            GV_List.DataSource = cmd.ExecuteReader();
+            GV_List.DataBind();
+
+        }
+
+        catch(Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }
+    }
+
+    void FillListManufctr()
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("SELECT ManufacturerID, Name, Remarks FROM Manufacturers ORDER BY Name", con);
+            cmd.CommandType = System.Data.CommandType.Text;
+
+            SqlDataReader dr;
+            dr = cmd.ExecuteReader();
+            ddlmanufctr.DataSource = dr;
+            ddlmanufctr.DataBind();
+        }
+
+
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }
+
+        finally
+        {
+            if (con.State == System.Data.ConnectionState.Open) con.Close();
+        }
+    }
+
+    void FillListDealer()
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("SELECT DealerID, Name, Remarks FROM Dealers ORDER BY Name", con);
+            cmd.CommandType = System.Data.CommandType.Text;
+
+            SqlDataReader dr;
+            dr = cmd.ExecuteReader();
+            ddlDealer.DataSource = dr;
+            ddlDealer.DataBind();
+        }
+
+
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }
+
+        finally
+        {
+            if (con.State == System.Data.ConnectionState.Open) con.Close();
+        }
+    }
+
+    void FillListColor()
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("SELECT ColorID, Name, Remarks FROM Colors ORDER BY Name", con);
+            cmd.CommandType = System.Data.CommandType.Text;
+
+            SqlDataReader dr;
+            dr = cmd.ExecuteReader();
+            ddlColor.DataSource = dr;
+            ddlColor.DataBind();
+        }
+
+
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }
+
+        finally
+        {
+            if (con.State == System.Data.ConnectionState.Open) con.Close();
+        }
+    }
+
+    void FillListVehicleType()
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("SELECT VehicleTypeID, Name, Remarks FROM [Vehicle Types] ORDER BY Name", con);
+            cmd.CommandType = System.Data.CommandType.Text;
+
+            SqlDataReader dr;
+            dr = cmd.ExecuteReader();
+            ddlType.DataSource = dr;
+            ddlType.DataBind();
+        }
+
+
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }
+
+        finally
+        {
+            if (con.State == System.Data.ConnectionState.Open) con.Close();
+        }
+    }
+
+    void FillListModel()
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("SELECT ModelID, Name, Remarks FROM Models ORDER BY Name", con);
+            cmd.CommandType = System.Data.CommandType.Text;
+
+            SqlDataReader dr;
+            dr = cmd.ExecuteReader();
+            ddlModel.DataSource = dr;
+            ddlModel.DataBind();
+        }
+
+
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }
+
+        finally
+        {
+            if (con.State == System.Data.ConnectionState.Open) con.Close();
+        }
+    }
+
+    void FillListCity()
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("SELECT CityID, Code, Name, ShortName, Remarks FROM Cities ORDER BY Name", con);
+            cmd.CommandType = System.Data.CommandType.Text;
+
+            SqlDataReader dr;
+            dr = cmd.ExecuteReader();
+            ddlCity.DataSource = dr;
+            ddlCity.DataBind();
+        }
+
+
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+            lblMsg.ForeColor = Color.Red;
+        }
+
+        finally
+        {
+            if (con.State == System.Data.ConnectionState.Open) con.Close();
+        }
+    }
+
+    protected void btnDelete_Click(object sender, EventArgs e)
+    {
+        SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["eChallanConnectionString2"].ToString());
+
+        try
+        {
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("DeleteVehicle", con);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
+            cmd.Parameters.Add("RegdID", System.Data.SqlDbType.Int).Value = txtID.Text;
+
+            SqlParameter prm;
+            prm = cmd.Parameters.Add("@ErrorMsg", System.Data.SqlDbType.VarChar, 250);
+            prm.Direction = System.Data.ParameterDirection.InputOutput;
+
+            cmd.ExecuteNonQuery();
+
+            string err;
+            err = (string)cmd.Parameters["@ErrorMsg"].Value;
+            if (err.Length == 0)
+            {
+                lblMsg.Text = "Deleted successfully!";
+                lblMsg.ForeColor = Color.Green;
+                InitForNew();
+            }
+            else
+            {
+                lblMsg.Text = err;
+                lblMsg.ForeColor = Color.Red;
+            }
+        }
+        catch (Exception ex)
+        {
+            lblMsg.Text = ex.Message;
+        }
+
+        finally
+        {
+            if (con.State == System.Data.ConnectionState.Open) con.Close();
+        }
+    }
+
+    
+}
